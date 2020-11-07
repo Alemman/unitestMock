@@ -1,12 +1,11 @@
 package org.example;
 
-import org.example.stubs.TestInputStream;
-import org.example.stubs.TestOutputStream;
 import org.junit.jupiter.api.Test;
-
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import  java.io.InputStream;
+import  java.io.OutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,19 +16,26 @@ class EchoServiceTest {
         //Given
             EchoService echoService = new EchoService();
 
-            String ip = "";
-            int port = 3000;
-            String request = "11001";
 
-        TestOutputStream outputStream = new TestOutputStream();
-        TestInputStream inputStream = new TestInputStream(request);
+            String request = "hell";
+            byte [] messageInBytes = new byte[]{
+                    'h','e','l','l'
+        };
+
+
+        OutputStream outputStream = Mockito.mock(OutputStream.class);
+        InputStream inputStream =Mockito.mock(InputStream.class);
+
+        Mockito.when(inputStream.readAllBytes()).thenReturn(messageInBytes);
 
         //When
         boolean response = echoService.sendEchoMessage(request,outputStream,inputStream);
 
         //Then
-        String messageSent = outputStream.getMessageSend();
-        assertEquals(request,messageSent);
+        Mockito.verify(inputStream).readAllBytes();
+        Mockito.verify(outputStream).write(messageInBytes);
+        Mockito.verifyNoMoreInteractions(inputStream,outputStream);
+
         assertTrue(response);
 
     }
@@ -38,18 +44,28 @@ class EchoServiceTest {
     public void givenValidRequestAnWrongResponse_WhenEcho_ThenFalseIsResponded() throws IOException {
         //Given
         EchoService echoService = new EchoService();
+        byte [] messageResponse = new byte[]{
+                'h','e','l','l','!'
+        };
+        byte [] messageRequest = new byte[]{
+                'h','e','l','l'
+        };
+        String request = "hell";
 
-        String request = "fgdgfd";
+        OutputStream outputStream = Mockito.mock(OutputStream.class);
+        InputStream inputStream = Mockito.mock(InputStream.class);
 
-        TestOutputStream outputStream = new TestOutputStream();
-        TestInputStream inputStream = new TestInputStream("Hello WOrld!");
+        Mockito.when(inputStream.readAllBytes()).thenReturn(messageResponse);
 
         //When
         boolean response = echoService.sendEchoMessage(request,outputStream,inputStream);
 
         //Then
-        String messageSent = outputStream.getMessageSend();
-        assertEquals(request,messageSent);
+
+        Mockito.verify(inputStream).readAllBytes();
+        Mockito.verify(outputStream).write(messageRequest);
+        Mockito.verifyNoMoreInteractions(inputStream,outputStream);
+
         assertFalse(response);
 
     }
